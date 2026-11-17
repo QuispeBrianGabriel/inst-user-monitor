@@ -10,7 +10,9 @@ RUN rustup toolchain install stable --profile minimal --target wasm32-unknown-un
 
 WORKDIR /app
 COPY . .
-RUN trunk build --release
+# URL pública de la API, incrustada en el wasm al compilar (Railway la pasa como build arg)
+ARG API_URL=http://localhost:8080
+RUN API_URL="$API_URL" trunk build --release
 
 # ---------- Runtime ----------
 FROM nginx:1.27-alpine
