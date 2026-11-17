@@ -27,7 +27,12 @@ sed -i -E "0,/^version = \".*\"/s//version = \"$version\"/" Cargo.toml
 cargo update --workspace --quiet
 
 git add Cargo.toml Cargo.lock
-git commit -m "chore(release): $tag"
+# Si Cargo.toml ya tenía esa versión (p. ej. la primera release) no hay nada que commitear
+if git diff --cached --quiet; then
+  printf "\033[2mCargo.toml ya está en %s, se etiqueta el commit actual\033[0m\n" "$version"
+else
+  git commit -m "chore(release): $tag"
+fi
 git tag -a "$tag" -m "Release $tag"
 git push origin main "$tag"
 
