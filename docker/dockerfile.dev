@@ -1,0 +1,34 @@
+# syntax=docker/dockerfile:1
+# Imagen de desarrollo: Rust + target wasm + Trunk + leptosfmt, usuario no-root.
+FROM rust:1-trixie
+
+ARG USERNAME=dev
+ARG USER_UID=1000
+ARG USER_GID=1000
+
+# Utilidades del sistema (tree para `make tree`)
+RUN apt-get update && apt-get install -y --no-install-recommends tree && rm -rf /var/lib/apt/lists/*
+
+# Toolchain y target wasm (coincide con rust-toolchain.toml)
+RUN rustup toolchain install stable --profile minimal \
+        --component rustfmt,clippy,rust-src \
+        --target wasm32-unknown-unknown \
+    && rustup default stable
+
+# Herramientas: trunk (bundler/servidor) y leptosfmt (formatea macros view!)
+RUN curl -L --proto '=https' --tlsv1.2 -sSf \
+        https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.sh | bash \
+    && cargo binstall -y --locked trunk leptosfmt \
+    && rm -rf "$CARGO_HOME/registry" "$CARGO_HOME/git"
+
+# Usuario no-root con UID/GID configurables para evitar problemas de permisos en el bind mount
+RUN groupadd --gid "$USER_GID" "$USERNAME" \
+    && useradd --uid "$USER_UID" --gid "$USER_GID" -m -s /bin/bash "$USERNAME" \
+    && mkdir -p /app/target "$CARGO_HOME/registry" "/home/$USERNAME/.claude" \
+    && chown -R "$USERNAME:$USERNAME" /app "$CARGO_HOME" "$RUSTUP_HOME" "/home/$USERNAME"
+
+USER $USERNAME
+WORKDIR /app
+
+EXPOSE 3000
+CMD ["sleep", "infinity"]
