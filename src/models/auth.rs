@@ -21,6 +21,11 @@ pub struct RegisterRequest {
 pub enum AuthError {
     InvalidCredentials,
     EmailTaken,
+    TooManyRequests,
+    /// Rechazo de la API con su mensaje (p. ej. contraseña débil).
+    Rejected(String),
+    /// La API no responde o la respuesta no es la esperada.
+    Network,
 }
 
 impl fmt::Display for AuthError {
@@ -28,6 +33,9 @@ impl fmt::Display for AuthError {
         let message = match self {
             Self::InvalidCredentials => "Correo o contraseña incorrectos.",
             Self::EmailTaken => "Ya existe una cuenta con ese correo.",
+            Self::TooManyRequests => "Demasiados intentos. Espera un minuto.",
+            Self::Rejected(message) => message,
+            Self::Network => "No se pudo conectar con el servidor.",
         };
         f.write_str(message)
     }

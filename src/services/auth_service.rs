@@ -1,77 +1,84 @@
-//! Servicio de autenticación.
+//! Servicio de autenticación contra la API (`config::API_URL`).
 //!
-//! Por ahora es una **implementación simulada** que no necesita backend: guarda
-//! en `localStorage` la lista de usuarios registrados (solo el correo,
-//! nunca contraseñas) y emite tokens ficticios. Cuando exista la API, basta con
-//! reimplementar `login` y `register` con peticiones HTTP manteniendo las
-//! mismas firmas; el resto de la app no cambia.
+//! - `login`: `POST /auth/login` y luego `GET /auth/me` para obtener el usuario.
+//! - `register`: `POST /auth/register` y, a continuación, `login`, para que
+//!   el usuario entre directamente sin volver a escribir sus datos.
 
-use gloo_timers::future::TimeoutFuture;
+use gloo_net::http::{Request, Response};
+use serde::{de::DeserializeOwned, Deserialize};
 
-use crate::config::storage_keys;
+use crate::config::API_URL;
 use crate::models::auth::{AuthError, LoginRequest, RegisterRequest};
 use crate::models::user::{Session, User};
-use crate::services::storage;
 
-/// Latencia simulada para que la UI muestre sus estados de carga.
-const SIMULATED_LATENCY_MS: u32 = 700;
+#[derive(Deserialize)]
+struct TokenResponse {
+    access_token: String,
+}
+
+/// Cuerpo de error de la API: `{"error": "<código>", "message": "<texto>"}`.
+#[derive(Deserialize)]
+struct ApiError {
+    error: String,
+    message: String,
+}
+
+impl From<gloo_net::Error> for AuthError {
+    fn from(_: gloo_net::Error) -> Self {
+        Self::Network
+    }
+}
 
 pub async fn login(request: LoginRequest) -> Result<Session, AuthError> {
-    TimeoutFuture::new(SIMULATED_LATENCY_MS).await;
-
-    let email = normalize_email(&request.email);
-    registered_users()
-        .into_iter()
-        .find(|user| user.email == email)
-        .map(new_session)
-        .ok_or(AuthError::InvalidCredentials)
+    let response = Request::post(&url("/auth/login"))
+        .json(&request)?
+        .send()
+        .await?;
+    let token: TokenResponse = parse(response).await?;
+    let user = me(&token.access_token).await?;
+    Ok(Session {
+        user,
+        token: token.access_token,
+    })
 }
 
 pub async fn register(request: RegisterRequest) -> Result<Session, AuthError> {
-    TimeoutFuture::new(SIMULATED_LATENCY_MS).await;
+    let response = Request::post(&url("/auth/register"))
+        .json(&request)?
+        .send()
+        .await?;
+    parse::<User>(response).await?;
+    login(LoginRequest {
+        email: request.email,
+        password: request.password,
+    })
+    .await
+}
 
-    let email = normalize_email(&request.email);
-    let mut users = registered_users();
-    if users.iter().any(|user| user.email == email) {
-        return Err(AuthError::EmailTaken);
+async fn me(token: &str) -> Result<User, AuthError> {
+    let response = Request::get(&url("/auth/me"))
+        .header("Authorization", &format!("Bearer {token}"))
+        .send()
+        .await?;
+    parse(response).await
+}
+
+/// Devuelve el cuerpo si la respuesta es 2xx; si no, traduce el error de la API.
+async fn parse<T: DeserializeOwned>(response: Response) -> Result<T, AuthError> {
+    if response.ok() {
+        return Ok(response.json().await?);
     }
-
-    let user = User { email };
-    users.push(user.clone());
-    storage::save(storage_keys::MOCK_USERS, &users);
-    Ok(new_session(user))
-}
-
-fn registered_users() -> Vec<User> {
-    storage::load(storage_keys::MOCK_USERS).unwrap_or_default()
-}
-
-fn new_session(user: User) -> Session {
-    let issued_at = now_ms();
-    Session {
-        token: format!("mock.{issued_at}"),
-        user,
+    if response.status() == 429 {
+        return Err(AuthError::TooManyRequests);
     }
+    let body: ApiError = response.json().await?;
+    Err(match body.error.as_str() {
+        "invalid_credentials" => AuthError::InvalidCredentials,
+        "email_taken" => AuthError::EmailTaken,
+        _ => AuthError::Rejected(body.message),
+    })
 }
 
-fn normalize_email(email: &str) -> String {
-    email.trim().to_lowercase()
-}
-
-/// Marca de tiempo en milisegundos, solo para que cada token ficticio sea distinto.
-fn now_ms() -> u64 {
-    web_sys::window()
-        .and_then(|window| window.performance())
-        .map(|performance| performance.time_origin() + performance.now())
-        .unwrap_or_default() as u64
-}
-
-#[cfg(test)]
-mod tests {
-    use super::normalize_email;
-
-    #[test]
-    fn normalizes_email_case_and_whitespace() {
-        assert_eq!(normalize_email("  Ana@Example.COM "), "ana@example.com");
-    }
+fn url(path: &str) -> String {
+    format!("{}{path}", API_URL.trim_end_matches('/'))
 }

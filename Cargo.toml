@@ -10,7 +10,7 @@ console_error_panic_hook = "0.1"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 web-sys = { version = "0.3", features = ["Performance", "Storage", "Window"] }
-gloo-timers = { version = "0.4", features = ["futures"] }
+gloo-net = { version = "0.6", default-features = false, features = ["http", "json"] }
 
 [profile.release]
 opt-level = "z"

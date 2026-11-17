@@ -349,7 +349,7 @@ name = "front"
 version = "0.2.0"
 dependencies = [
  "console_error_panic_hook",
- "gloo-timers",
+ "gloo-net",
  "leptos",
  "leptos_router",
  "serde",
@@ -487,18 +487,6 @@ dependencies = [
  "wasm-bindgen",
  "wasm-bindgen-futures",
  "web-sys",
-]
-
-[[package]]
-name = "gloo-timers"
-version = "0.4.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a4460540da666acdb5722b2a62ac47d18f627fcfc0c728d04dc7226b3f6d40a7"
-dependencies = [
- "futures-channel",
- "futures-core",
- "js-sys",
- "wasm-bindgen",
 ]
 
 [[package]]
