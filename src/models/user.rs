@@ -3,7 +3,6 @@ use serde::{Deserialize, Serialize};
 /// Usuario autenticado.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct User {
-    pub name: String,
     pub email: String,
 }
 

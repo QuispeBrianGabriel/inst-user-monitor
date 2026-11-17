@@ -7,7 +7,7 @@ use crate::models::auth::RegisterRequest;
 use crate::services::auth_service;
 use crate::state::auth::use_auth;
 use crate::utils::validation::{
-    validate_email, validate_name, validate_new_password, validate_password_confirmation,
+    validate_email, validate_new_password, validate_password_confirmation,
 };
 
 /// Formulario de creación de cuenta. Mismo patrón de validación que `LoginForm`.
@@ -15,7 +15,6 @@ use crate::utils::validation::{
 pub fn RegisterForm() -> impl IntoView {
     let auth = use_auth();
 
-    let name = RwSignal::new(String::new());
     let email = RwSignal::new(String::new());
     let password = RwSignal::new(String::new());
     let confirmation = RwSignal::new(String::new());
@@ -25,7 +24,6 @@ pub fn RegisterForm() -> impl IntoView {
 
     let shown =
         move |result: Result<(), &'static str>| submitted.get().then_some(result.err()).flatten();
-    let name_error = Signal::derive(move || shown(name.with(|v| validate_name(v))));
     let email_error = Signal::derive(move || shown(email.with(|v| validate_email(v))));
     let password_error = Signal::derive(move || shown(password.with(|v| validate_new_password(v))));
     let confirmation_error = Signal::derive(move || {
@@ -38,7 +36,7 @@ pub fn RegisterForm() -> impl IntoView {
             return;
         }
         submitted.set(true);
-        let has_errors = [name_error, email_error, password_error, confirmation_error]
+        let has_errors = [email_error, password_error, confirmation_error]
             .iter()
             .any(|error| error.get_untracked().is_some());
         if has_errors {
@@ -46,7 +44,6 @@ pub fn RegisterForm() -> impl IntoView {
         }
 
         let request = RegisterRequest {
-            name: name.get_untracked().trim().to_owned(),
             email: email.get_untracked().trim().to_owned(),
             password: password.get_untracked(),
         };
@@ -66,14 +63,6 @@ pub fn RegisterForm() -> impl IntoView {
     view! {
         <form class="auth-form" on:submit=on_submit novalidate>
             <Alert message=server_error />
-            <TextField
-                id="register-name"
-                label="Nombre"
-                autocomplete="name"
-                placeholder="Ana García"
-                value=name
-                error=name_error
-            />
             <TextField
                 id="register-email"
                 label="Correo electrónico"

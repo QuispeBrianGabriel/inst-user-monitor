@@ -6,18 +6,6 @@
 pub type ValidationResult = Result<(), &'static str>;
 
 pub const MIN_PASSWORD_LEN: usize = 8;
-const NAME_LEN: std::ops::RangeInclusive<usize> = 2..=50;
-
-pub fn validate_name(name: &str) -> ValidationResult {
-    let len = name.trim().chars().count();
-    if len == 0 {
-        Err("Introduce tu nombre.")
-    } else if !NAME_LEN.contains(&len) {
-        Err("El nombre debe tener entre 2 y 50 caracteres.")
-    } else {
-        Ok(())
-    }
-}
 
 pub fn validate_email(email: &str) -> ValidationResult {
     let email = email.trim();
@@ -134,14 +122,6 @@ impl PasswordStrength {
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    #[test]
-    fn name_rules() {
-        assert!(validate_name("Ana").is_ok());
-        assert!(validate_name("   ").is_err());
-        assert!(validate_name("A").is_err());
-        assert!(validate_name(&"a".repeat(51)).is_err());
-    }
 
     #[test]
     fn accepts_valid_emails() {

@@ -7,7 +7,7 @@ use crate::state::auth::use_auth;
 #[component]
 pub fn Header() -> impl IntoView {
     let auth = use_auth();
-    let user_name = move || auth.user().map(|user| user.name).unwrap_or_default();
+    let user_name = move || auth.user().map(|user| user.email).unwrap_or_default();
 
     view! {
         <header class="header">

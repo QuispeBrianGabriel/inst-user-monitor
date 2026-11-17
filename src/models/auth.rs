@@ -12,7 +12,6 @@ pub struct LoginRequest {
 /// Datos enviados para crear una cuenta.
 #[derive(Debug, Clone, Serialize)]
 pub struct RegisterRequest {
-    pub name: String,
     pub email: String,
     pub password: String,
 }

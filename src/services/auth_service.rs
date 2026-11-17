@@ -1,7 +1,7 @@
 //! Servicio de autenticación.
 //!
 //! Por ahora es una **implementación simulada** que no necesita backend: guarda
-//! en `localStorage` la lista de usuarios registrados (solo nombre y correo,
+//! en `localStorage` la lista de usuarios registrados (solo el correo,
 //! nunca contraseñas) y emite tokens ficticios. Cuando exista la API, basta con
 //! reimplementar `login` y `register` con peticiones HTTP manteniendo las
 //! mismas firmas; el resto de la app no cambia.
@@ -36,10 +36,7 @@ pub async fn register(request: RegisterRequest) -> Result<Session, AuthError> {
         return Err(AuthError::EmailTaken);
     }
 
-    let user = User {
-        name: request.name.trim().to_owned(),
-        email,
-    };
+    let user = User { email };
     users.push(user.clone());
     storage::save(storage_keys::MOCK_USERS, &users);
     Ok(new_session(user))
