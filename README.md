@@ -38,14 +38,38 @@ Build multi-stage: compila con Trunk y sirve `dist/` con nginx (con fallback SPA
 ```
 src/
   main.rs          # punto de entrada (monta <App/>)
-  app.rs           # layout raíz y rutas
-  components/      # componentes reutilizables (Header, ...)
-  pages/           # una vista por ruta (Home, NotFound, ...)
-style/main.css     # estilos globales y variables de diseño
-public/            # assets estáticos copiados tal cual a dist/
+  app.rs           # estado global y rutas
+  config.rs        # nombre de la app, rutas y claves de localStorage
+  models/          # tipos de dominio (User, Session, peticiones, errores)
+  services/        # acceso a API y localStorage (auth_service es un mock)
+  state/           # estado global vía contexto (AuthState: use_auth())
+  utils/           # funciones puras y testeadas (validación)
+  components/
+    ui/            # piezas genéricas: TextField, SubmitButton, Alert, ...
+    auth/          # LoginForm, RegisterForm
+    ...            # Header, ProtectedLayout (guarda de rutas privadas)
+  pages/           # una vista por ruta (AuthPage, Dashboard, NotFound)
+style/
+  main.css         # tokens de diseño, reset y layout
+  components.css   # estilos de components/ui
+  auth.css         # página de acceso
+public/            # assets estáticos copiados a la raíz de dist/ (icon.svg, manifest)
 scripts/           # lógica de las tareas del Makefile
 docker/            # dockerfile.dev, dockerfile.prod, compose.yml, .env.example
 .devcontainer/     # configuración de VS Code Dev Containers
 ```
 
 Para añadir una página: crea `src/pages/<nombre>.rs`, regístrala en `src/pages/mod.rs` y añade un `<Route>` en `src/app.rs`.
+
+### Rutas
+
+| Ruta | Vista |
+| --- | --- |
+| `/` | Login (`/?mode=register` → registro). Con sesión, redirige a `/dashboard` |
+| `/dashboard` | Privada (`ProtectedLayout`): sin sesión, redirige a `/` |
+
+> `services/auth_service.rs` es **simulado**: guarda en `localStorage` los usuarios registrados (solo nombre y correo) y acepta cualquier contraseña para un correo registrado. Al conectar la API, reimplementa `login`/`register` con las mismas firmas.
+
+### Icono
+
+El favicon es el emoji 🛰️ en `public/icon.svg` (SVG, sin imágenes rasterizadas); también lo usa `public/site.webmanifest`.
