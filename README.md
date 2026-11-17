@@ -27,6 +27,8 @@ docker compose -f docker/compose.yml --profile prod up -d --build web-prod   # h
 
 Build multi-stage: compila con Trunk y sirve `dist/` con nginx (con fallback SPA a `index.html`).
 
+La URL de la API se fija **al compilar** con la variable `API_URL` (por defecto `http://localhost:8080`), p. ej. `docker build --build-arg API_URL=https://api.example.com ...`. La API debe permitir el origen del front en `CORS_ORIGIN`.
+
 ## CI / Release
 
 - `.github/workflows/pipeline.yml`: en cada push ejecuta `make check`.
@@ -39,9 +41,9 @@ Build multi-stage: compila con Trunk y sirve `dist/` con nginx (con fallback SPA
 src/
   main.rs          # punto de entrada (monta <App/>)
   app.rs           # estado global y rutas
-  config.rs        # nombre de la app, rutas y claves de localStorage
+  config.rs        # nombre de la app, URL de la API, rutas y claves de localStorage
   models/          # tipos de dominio (User, Session, peticiones, errores)
-  services/        # acceso a API y localStorage (auth_service es un mock)
+  services/        # acceso a API y localStorage
   state/           # estado global vía contexto (AuthState: use_auth())
   utils/           # funciones puras y testeadas (validación)
   components/
@@ -68,7 +70,7 @@ Para añadir una página: crea `src/pages/<nombre>.rs`, regístrala en `src/page
 | `/` | Login (`/?mode=register` → registro). Con sesión, redirige a `/dashboard` |
 | `/dashboard` | Privada (`ProtectedLayout`): sin sesión, redirige a `/` |
 
-> `services/auth_service.rs` es **simulado**: guarda en `localStorage` los usuarios registrados (solo nombre y correo) y acepta cualquier contraseña para un correo registrado. Al conectar la API, reimplementa `login`/`register` con las mismas firmas.
+> `services/auth_service.rs` habla con la API: `login` pide el token y luego `/auth/me`; `register` crea la cuenta e inicia sesión enseguida, así que el usuario entra directo a `/dashboard`.
 
 ### Icono
 
