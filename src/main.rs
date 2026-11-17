@@ -1,6 +1,11 @@
 mod app;
 mod components;
+mod config;
+mod models;
 mod pages;
+mod services;
+mod state;
+mod utils;
 
 use app::App;
 
