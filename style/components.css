@@ -1,0 +1,235 @@
+/* =============================================================================
+   Componentes reutilizables (src/components/ui).
+   ========================================================================== */
+
+/* ---------- Botones ---------- */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  padding: 0.65rem 1.1rem;
+  font: inherit;
+  font-weight: 600;
+  border: 1px solid transparent;
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition:
+    background-color var(--duration),
+    border-color var(--duration),
+    color var(--duration);
+}
+
+.btn:disabled {
+  cursor: progress;
+  opacity: 0.75;
+}
+
+.btn--primary {
+  width: 100%;
+  padding: 0.8rem 1.1rem;
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--on-accent);
+  background-color: var(--accent);
+}
+
+.btn--primary:hover:not(:disabled) {
+  background-color: #5cc8ff;
+}
+
+.btn--ghost {
+  color: var(--fg);
+  background-color: transparent;
+  border-color: var(--border-strong);
+}
+
+.btn--ghost:hover {
+  color: var(--fg);
+  border-color: var(--accent);
+}
+
+/* El spinner solo existe (y anima) mientras hay una petición en curso */
+.btn__spinner {
+  display: none;
+  width: 0.9rem;
+  height: 0.9rem;
+  border: 2px solid transparent;
+  border-top-color: currentColor;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+.is-pending .btn__spinner {
+  display: inline-block;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ---------- Campos de formulario ---------- */
+
+.field {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.field__label {
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.field__control {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.field__input {
+  width: 100%;
+  padding: 0.75rem 0.9rem;
+  font: inherit;
+  color: var(--fg);
+  background-color: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  outline: none;
+  transition: border-color var(--duration);
+}
+
+.field__input::placeholder {
+  color: var(--subtle);
+}
+
+.field__input:hover {
+  border-color: var(--border-strong);
+}
+
+.field__input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+/* Autocompletado del navegador sin fondo amarillo */
+.field__input:-webkit-autofill {
+  -webkit-text-fill-color: var(--fg);
+  -webkit-box-shadow: 0 0 0 1000px var(--bg) inset;
+  caret-color: var(--fg);
+}
+
+.field__control:has(.field__toggle) .field__input {
+  padding-right: 4.5rem;
+}
+
+.field__toggle {
+  position: absolute;
+  right: 0.4rem;
+  padding: 0.3rem 0.55rem;
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+  background: none;
+  border: 0;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+
+.field__toggle:hover {
+  color: var(--accent);
+}
+
+.field__error {
+  min-height: 1.1rem;
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--danger);
+}
+
+.field.has-error .field__input {
+  border-color: var(--danger);
+}
+
+.field.has-error .field__input:focus {
+  box-shadow: 0 0 0 3px var(--danger-soft);
+}
+
+/* ---------- Alerta de formulario ---------- */
+
+.alert {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin: 0 0 0.5rem;
+  padding: 0.65rem 0.85rem;
+  font-size: 0.875rem;
+  color: #ffd5dd;
+  background-color: var(--danger-soft);
+  border-left: 2px solid var(--danger);
+  border-radius: var(--radius-sm);
+}
+
+.alert__icon {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  color: var(--danger);
+}
+
+/* ---------- Medidor de contraseña ---------- */
+
+.meter {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-height: 1rem;
+}
+
+.meter__bars {
+  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 3px;
+}
+
+.meter__bar {
+  height: 2px;
+  background-color: var(--border);
+  transition: background-color var(--duration);
+}
+
+.meter__label {
+  min-width: 7.5rem;
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.08em;
+  text-align: right;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.meter[data-level="1"] {
+  --meter-color: var(--danger);
+}
+.meter[data-level="2"] {
+  --meter-color: var(--warning);
+}
+.meter[data-level="3"] {
+  --meter-color: var(--accent);
+}
+.meter[data-level="4"] {
+  --meter-color: var(--success);
+}
+
+.meter__bar.is-on {
+  background-color: var(--meter-color);
+}
