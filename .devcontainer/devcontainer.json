@@ -1,0 +1,42 @@
+{
+  "name": "Inst User Monitor Front",
+  "dockerComposeFile": "../docker/compose.yml",
+  "service": "web",
+  "workspaceFolder": "/app",
+  "remoteUser": "dev",
+  "mounts": ["source=claude-config,target=/home/dev/.claude,type=volume"],
+  "containerEnv": {
+    "CLAUDE_CONFIG_DIR": "/home/dev/.claude"
+  },
+  "postCreateCommand": "cargo fetch",
+  "forwardPorts": [3000],
+  "portsAttributes": {
+    "3000": {
+      "label": "Leptos (trunk serve)",
+      "onAutoForward": "notify"
+    }
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "rust-lang.rust-analyzer",
+        "tamasfe.even-better-toml",
+        "EditorConfig.EditorConfig",
+        "anthropic.claude-code"
+      ],
+      "settings": {
+        "editor.formatOnSave": true,
+        "[rust]": {
+          "editor.defaultFormatter": "rust-lang.rust-analyzer"
+        },
+        "rust-analyzer.cargo.target": "wasm32-unknown-unknown",
+        "rust-analyzer.rustfmt.overrideCommand": ["leptosfmt", "--stdin", "--rustfmt"],
+        "rust-analyzer.check.command": "clippy",
+        "files.exclude": {
+          "**/target": true,
+          "**/dist": true
+        }
+      }
+    }
+  }
+}
