@@ -3,10 +3,19 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Inst User Monitor</title>
+    <title>User Inspector</title>
+    <meta name="description" content="User Inspector: observa, analiza y comprende a tus usuarios." />
+    <meta name="theme-color" content="#06080d" />
+    <meta name="color-scheme" content="dark" />
+
+    <link rel="icon" type="image/svg+xml" href="/icon.svg" />
+    <link rel="manifest" href="/site.webmanifest" />
+
     <link data-trunk rel="rust" data-wasm-opt="z" />
     <link data-trunk rel="css" href="style/main.css" />
-    <link data-trunk rel="copy-dir" href="public" />
+    <link data-trunk rel="css" href="style/components.css" />
+    <link data-trunk rel="css" href="style/auth.css" />
+    <link data-trunk rel="copy-dir" href="public" data-target-path="." />
   </head>
   <body></body>
 </html>
