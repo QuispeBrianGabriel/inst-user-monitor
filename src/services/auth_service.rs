@@ -1,4 +1,4 @@
-//! Servicio de autenticación contra la API (`config::API_URL`).
+//! Servicio de autenticación contra la API (`config::api_url()`).
 //!
 //! - `login`: `POST /auth/login` y luego `GET /auth/me` para obtener el usuario.
 //! - `register`: `POST /auth/register` y, a continuación, `login`, para que
@@ -7,7 +7,7 @@
 use gloo_net::http::{Request, Response};
 use serde::{de::DeserializeOwned, Deserialize};
 
-use crate::config::API_URL;
+use crate::config::api_url;
 use crate::models::auth::{AuthError, LoginRequest, RegisterRequest};
 use crate::models::user::{Session, User};
 
@@ -80,5 +80,5 @@ async fn parse<T: DeserializeOwned>(response: Response) -> Result<T, AuthError> 
 }
 
 fn url(path: &str) -> String {
-    format!("{}{path}", API_URL.trim_end_matches('/'))
+    format!("{}{path}", api_url())
 }

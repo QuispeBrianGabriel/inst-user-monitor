@@ -11,6 +11,9 @@
     <link rel="icon" type="image/svg+xml" href="/icon.svg" />
     <link rel="manifest" href="/site.webmanifest" />
 
+    <!-- Configuración de runtime (window.__APP_CONFIG__); debe cargarse antes del wasm -->
+    <script src="/config.js"></script>
+
     <link data-trunk rel="rust" data-wasm-opt="z" />
     <link data-trunk rel="css" href="style/main.css" />
     <link data-trunk rel="css" href="style/components.css" />
