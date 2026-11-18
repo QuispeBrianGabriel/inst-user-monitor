@@ -65,13 +65,18 @@ async fn me(token: &str) -> Result<User, AuthError> {
 
 /// Devuelve el cuerpo si la respuesta es 2xx; si no, traduce el error de la API.
 async fn parse<T: DeserializeOwned>(response: Response) -> Result<T, AuthError> {
+    let status = response.status();
     if response.ok() {
-        return Ok(response.json().await?);
+        return response.json().await.map_err(|_| AuthError::Server(status));
     }
-    if response.status() == 429 {
+    if status == 429 {
         return Err(AuthError::TooManyRequests);
     }
-    let body: ApiError = response.json().await?;
+    // Un 5xx (o cualquier cuerpo que no sea `ApiError`) no es un fallo de red:
+    // la API respondió, así que lo mostramos como error del servidor.
+    let Ok(body) = response.json::<ApiError>().await else {
+        return Err(AuthError::Server(status));
+    };
     Err(match body.error.as_str() {
         "invalid_credentials" => AuthError::InvalidCredentials,
         "email_taken" => AuthError::EmailTaken,
