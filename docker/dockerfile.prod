@@ -1,12 +1,20 @@
 # syntax=docker/dockerfile:1
-# ---------- Build ----------
-FROM rust:1-trixie AS builder
+# Versiones fijadas: deben coincidir con rust-toolchain.toml, dockerfile.dev y
+# .github/workflows/pipeline.yml (paridad dev/prod).
+ARG RUST_VERSION=1.100.0
+ARG BINSTALL_VERSION=1.27.0
+ARG TRUNK_VERSION=0.22.1
 
-RUN rustup toolchain install stable --profile minimal --target wasm32-unknown-unknown \
-    && rustup default stable \
+# ---------- Build ----------
+FROM rust:${RUST_VERSION}-trixie AS builder
+ARG BINSTALL_VERSION
+ARG TRUNK_VERSION
+
+RUN rustup target add wasm32-unknown-unknown \
     && curl -L --proto '=https' --tlsv1.2 -sSf \
-        https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.sh | bash \
-    && cargo binstall -y --locked trunk
+        "https://raw.githubusercontent.com/cargo-bins/cargo-binstall/v${BINSTALL_VERSION}/install-from-binstall-release.sh" \
+        | BINSTALL_VERSION="$BINSTALL_VERSION" bash \
+    && cargo binstall -y --locked "trunk@${TRUNK_VERSION}"
 
 WORKDIR /app
 COPY . .

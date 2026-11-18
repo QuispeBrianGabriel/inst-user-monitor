@@ -17,11 +17,12 @@ jobs:
       - uses: actions/checkout@v7.0.1
         with:
           persist-credentials: false
-      # Lee rust-toolchain.toml (stable + wasm32) y cachea ~/.cargo y target/
-      - uses: actions-rust-lang/setup-rust-toolchain@v1
+      # Lee rust-toolchain.toml (1.100.0 + wasm32) y cachea ~/.cargo y target/
+      - uses: actions-rust-lang/setup-rust-toolchain@v1.17.0
         with:
           components: rustfmt, clippy
-      - uses: taiki-e/install-action@v2
+      # Mismas versiones que docker/dockerfile.dev y docker/dockerfile.prod
+      - uses: taiki-e/install-action@v2.90.5
         with:
-          tool: trunk,leptosfmt
+          tool: trunk@0.22.1,leptosfmt@0.1.33
       - run: make check

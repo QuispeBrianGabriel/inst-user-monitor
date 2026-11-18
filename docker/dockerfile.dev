@@ -1,7 +1,13 @@
 # syntax=docker/dockerfile:1
 # Imagen de desarrollo: Rust + target wasm + Trunk + leptosfmt, usuario no-root.
-FROM rust:1-trixie
+# Versiones fijadas: deben coincidir con rust-toolchain.toml, dockerfile.prod y
+# .github/workflows/pipeline.yml (paridad dev/prod).
+ARG RUST_VERSION=1.100.0
+FROM rust:${RUST_VERSION}-trixie
 
+ARG BINSTALL_VERSION=1.27.0
+ARG TRUNK_VERSION=0.22.1
+ARG LEPTOSFMT_VERSION=0.1.33
 ARG USERNAME=dev
 ARG USER_UID=1000
 ARG USER_GID=1000
@@ -9,16 +15,15 @@ ARG USER_GID=1000
 # Utilidades del sistema (tree para `make tree`)
 RUN apt-get update && apt-get install -y --no-install-recommends tree && rm -rf /var/lib/apt/lists/*
 
-# Toolchain y target wasm (coincide con rust-toolchain.toml)
-RUN rustup toolchain install stable --profile minimal \
-        --component rustfmt,clippy,rust-src \
-        --target wasm32-unknown-unknown \
-    && rustup default stable
+# Componentes y target wasm (la versión de Rust la fija la imagen base)
+RUN rustup component add rustfmt clippy rust-src \
+    && rustup target add wasm32-unknown-unknown
 
 # Herramientas: trunk (bundler/servidor) y leptosfmt (formatea macros view!)
 RUN curl -L --proto '=https' --tlsv1.2 -sSf \
-        https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.sh | bash \
-    && cargo binstall -y --locked trunk leptosfmt \
+        "https://raw.githubusercontent.com/cargo-bins/cargo-binstall/v${BINSTALL_VERSION}/install-from-binstall-release.sh" \
+        | BINSTALL_VERSION="$BINSTALL_VERSION" bash \
+    && cargo binstall -y --locked "trunk@${TRUNK_VERSION}" "leptosfmt@${LEPTOSFMT_VERSION}" \
     && rm -rf "$CARGO_HOME/registry" "$CARGO_HOME/git"
 
 # Usuario no-root con UID/GID configurables para evitar problemas de permisos en el bind mount
