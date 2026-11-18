@@ -22,6 +22,10 @@ services:
     build:
       context: ..
       dockerfile: docker/dockerfile.prod
+    # Configuración de runtime: la misma imagen sirve para cualquier entorno
+    environment:
+      PORT: 80
+      API_URL: ${API_URL:-http://localhost:8080}
     ports:
       - "${PROD_PORT:-8080}:80"
     restart: unless-stopped
