@@ -22,12 +22,25 @@ Todo corre dentro de Docker; en el host solo hace falta Docker y VS Code con la 
 ## Producción
 
 ```sh
-docker compose -f docker/compose.yml --profile prod up -d --build web-prod   # http://localhost:8080
+docker compose -f docker/compose.yml --profile prod up -d --build web-prod   # http://localhost:8081
 ```
 
 Build multi-stage: compila con Trunk y sirve `dist/` con nginx (con fallback SPA a `index.html`).
 
-La URL de la API se fija **al compilar** con la variable `API_URL` (por defecto `http://localhost:8080`), p. ej. `docker build --build-arg API_URL=https://api.example.com ...`. La API debe permitir el origen del front en `CORS_ORIGIN`.
+La imagen no lleva configuración: es la misma para todos los entornos y se configura **al arrancar** con variables de entorno ([12-factor](https://12factor.net/es/)):
+
+| Variable | Por defecto | Uso |
+| --- | --- | --- |
+| `API_URL` | `http://localhost:8080` | URL pública de la API. Al arrancar se escribe en `/config.js` (`window.__APP_CONFIG__`), que el wasm lee antes de montar la app |
+| `PORT` | `80` | Puerto en el que escucha nginx (Railway/Heroku lo inyectan) |
+
+```sh
+docker run -e API_URL=https://api.example.com -e PORT=8080 -p 8080:8080 ghcr.io/<owner>/<repo>:X.Y.Z
+```
+
+Para cambiar la URL de la API basta con reiniciar el contenedor, sin recompilar. En Railway, `API_URL` va como variable del servicio (no hace falta como build arg). En desarrollo, `trunk serve` usa `public/config.js`. La API debe permitir el origen del front en `CORS_ORIGIN`.
+
+Las versiones de Rust (`rust-toolchain.toml`), Trunk, leptosfmt y cargo-binstall están fijadas y deben coincidir en `docker/dockerfile.dev`, `docker/dockerfile.prod` y `.github/workflows/pipeline.yml`.
 
 ## CI / Release
 
@@ -41,7 +54,7 @@ La URL de la API se fija **al compilar** con la variable `API_URL` (por defecto 
 src/
   main.rs          # punto de entrada (monta <App/>)
   app.rs           # estado global y rutas
-  config.rs        # nombre de la app, URL de la API, rutas y claves de localStorage
+  config.rs        # nombre de la app, URL de la API (runtime), rutas y claves de localStorage
   models/          # tipos de dominio (User, Session, peticiones, errores)
   services/        # acceso a API y localStorage
   state/           # estado global vía contexto (AuthState: use_auth())
@@ -55,7 +68,7 @@ style/
   main.css         # tokens de diseño, reset y layout
   components.css   # estilos de components/ui
   auth.css         # página de acceso
-public/            # assets estáticos copiados a la raíz de dist/ (icon.svg, manifest)
+public/            # assets estáticos copiados a la raíz de dist/ (icon.svg, manifest, config.js de dev)
 scripts/           # lógica de las tareas del Makefile
 docker/            # dockerfile.dev, dockerfile.prod, compose.yml, .env.example
 .devcontainer/     # configuración de VS Code Dev Containers
