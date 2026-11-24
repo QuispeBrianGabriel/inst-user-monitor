@@ -5,7 +5,10 @@
 
 pub type ValidationResult = Result<(), &'static str>;
 
-pub const MIN_PASSWORD_LEN: usize = 8;
+/// Política de contraseñas de la API (`models/users/password.rs` del back):
+/// si no coincide, el registro pasa la validación aquí y la API lo rechaza.
+pub const MIN_PASSWORD_LEN: usize = 12;
+pub const MAX_PASSWORD_LEN: usize = 128;
 
 pub fn validate_email(email: &str) -> ValidationResult {
     let email = email.trim();
@@ -42,16 +45,28 @@ pub fn validate_password_present(password: &str) -> ValidationResult {
     }
 }
 
-/// Requisitos mínimos para una contraseña nueva.
+/// Requisitos de una contraseña nueva: los mismos que la API y en el mismo
+/// orden, para que el primer fallo que se muestra sea el que daría ella.
 pub fn validate_new_password(password: &str) -> ValidationResult {
     if password.is_empty() {
         Err("Introduce una contraseña.")
-    } else if password.chars().count() < MIN_PASSWORD_LEN {
-        Err("Debe tener al menos 8 caracteres.")
-    } else if !password.chars().any(char::is_alphabetic)
-        || !password.chars().any(|c| c.is_ascii_digit())
+    } else if password.len() > MAX_PASSWORD_LEN {
+        Err("No puede superar 128 caracteres.")
+    } else if !password.chars().all(|c| c == ' ' || c.is_ascii_graphic()) {
+        Err("Solo admite letras sin tilde, números, símbolos y espacios.")
+    } else if password.len() < MIN_PASSWORD_LEN {
+        Err("Debe tener al menos 12 caracteres.")
+    } else if !password.chars().any(|c| c.is_ascii_lowercase()) {
+        Err("Debe incluir al menos una minúscula.")
+    } else if !password.chars().any(|c| c.is_ascii_uppercase()) {
+        Err("Debe incluir al menos una mayúscula.")
+    } else if !password.chars().any(|c| c.is_ascii_digit()) {
+        Err("Debe incluir al menos un número.")
+    } else if !password
+        .chars()
+        .any(|c| c.is_ascii_punctuation() || c == ' ')
     {
-        Err("Debe combinar letras y números.")
+        Err("Debe incluir al menos un símbolo.")
     } else {
         Ok(())
     }
@@ -94,7 +109,7 @@ impl PasswordStrength {
         .filter(|&present| present)
         .count();
 
-        let score = classes + usize::from(len >= MIN_PASSWORD_LEN) + usize::from(len >= 12);
+        let score = classes + usize::from(len >= MIN_PASSWORD_LEN) + usize::from(len >= 16);
         match score {
             0..=2 => Self::Weak,
             3 => Self::Fair,
@@ -152,11 +167,27 @@ mod tests {
 
     #[test]
     fn new_password_rules() {
-        assert!(validate_new_password("abc12345").is_ok());
-        assert!(validate_new_password("").is_err());
-        assert!(validate_new_password("abc123").is_err());
-        assert!(validate_new_password("abcdefgh").is_err());
-        assert!(validate_new_password("12345678").is_err());
+        assert!(validate_new_password("Abcdefgh123!").is_ok());
+        assert!(
+            validate_new_password("Abcdefgh 123").is_ok(),
+            "el espacio cuenta como símbolo"
+        );
+        for (password, why) in [
+            ("", "vacía"),
+            ("Abcdef12!", "corta"),
+            ("Ábcdefgh123!", "con tilde"),
+            ("abcdefgh123!", "sin mayúscula"),
+            ("ABCDEFGH123!", "sin minúscula"),
+            ("Abcdefghijk!", "sin número"),
+            ("Abcdefgh1234", "sin símbolo"),
+        ] {
+            assert!(
+                validate_new_password(password).is_err(),
+                "{why}: {password}"
+            );
+        }
+        assert!(validate_new_password(&format!("Aa1!{}", "x".repeat(125))).is_err());
+        assert!(validate_new_password(&format!("Aa1!{}", "x".repeat(124))).is_ok());
     }
 
     #[test]
@@ -172,10 +203,14 @@ mod tests {
         assert_eq!(PasswordStrength::evaluate("abc"), PasswordStrength::Weak);
         assert_eq!(
             PasswordStrength::evaluate("abcd1234"),
-            PasswordStrength::Fair
+            PasswordStrength::Weak
         );
         assert_eq!(
             PasswordStrength::evaluate("Abcd1234"),
+            PasswordStrength::Fair
+        );
+        assert_eq!(
+            PasswordStrength::evaluate("Abcd1234!"),
             PasswordStrength::Good
         );
         assert_eq!(

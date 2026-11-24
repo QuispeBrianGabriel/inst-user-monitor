@@ -77,7 +77,7 @@ pub fn RegisterForm() -> impl IntoView {
                 label="Contraseña"
                 input_type="password"
                 autocomplete="new-password"
-                placeholder="Mínimo 8 caracteres"
+                placeholder="Mínimo 12 caracteres"
                 value=password
                 error=password_error
             >
