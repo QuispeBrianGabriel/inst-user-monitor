@@ -1,6 +1,7 @@
 use leptos::prelude::*;
 
 use crate::config::storage_keys;
+use crate::models::api::ApiError;
 use crate::models::user::{Session, User};
 use crate::services::storage;
 
@@ -27,6 +28,25 @@ impl AuthState {
     pub fn user(&self) -> Option<User> {
         self.session
             .with(|session| session.as_ref().map(|s| s.user.clone()))
+    }
+
+    /// Token de la sesión para las peticiones a la API (vacío sin sesión).
+    /// No es reactivo: se lee al lanzar cada petición.
+    pub fn token(&self) -> String {
+        self.session.with_untracked(|session| {
+            session
+                .as_ref()
+                .map(|session| session.token.clone())
+                .unwrap_or_default()
+        })
+    }
+
+    /// Cierra la sesión si la API rechazó el token (caducado o inválido):
+    /// el layout privado redirige entonces al login.
+    pub fn handle_error(&self, error: &ApiError) {
+        if *error == ApiError::Unauthorized {
+            self.sign_out();
+        }
     }
 
     pub fn sign_in(&self, session: Session) {
