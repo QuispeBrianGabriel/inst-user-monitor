@@ -1,3 +1,4 @@
+pub mod accounts;
 pub mod auth;
 pub mod header;
 pub mod protected_layout;
