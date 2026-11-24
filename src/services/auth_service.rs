@@ -16,11 +16,14 @@ struct TokenResponse {
     access_token: String,
 }
 
-/// Cuerpo de error de la API: `{"error": "<código>", "message": "<texto>"}`.
+/// Cuerpo de error de la API (formato de Loco):
+/// `{"error": "<código>", "description": "<texto>"}`. El código es estable;
+/// el texto es legible y puede faltar.
 #[derive(Deserialize)]
 struct ApiError {
     error: String,
-    message: String,
+    #[serde(default)]
+    description: Option<String>,
 }
 
 impl From<gloo_net::Error> for AuthError {
@@ -74,13 +77,16 @@ async fn parse<T: DeserializeOwned>(response: Response) -> Result<T, AuthError> 
     }
     // Un 5xx (o cualquier cuerpo que no sea `ApiError`) no es un fallo de red:
     // la API respondió, así que lo mostramos como error del servidor.
+    if status >= 500 {
+        return Err(AuthError::Server(status));
+    }
     let Ok(body) = response.json::<ApiError>().await else {
         return Err(AuthError::Server(status));
     };
     Err(match body.error.as_str() {
         "invalid_credentials" => AuthError::InvalidCredentials,
         "email_taken" => AuthError::EmailTaken,
-        _ => AuthError::Rejected(body.message),
+        _ => AuthError::Rejected(body.description.unwrap_or(body.error)),
     })
 }
 
