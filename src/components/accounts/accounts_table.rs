@@ -4,11 +4,11 @@ use leptos_router::components::A;
 use crate::components::accounts::entries::ProfileLink;
 use crate::components::ui::delta::Delta;
 use crate::config::routes;
-use crate::models::account::{AccountSummary, ListKind, ListSummary};
+use crate::models::account::{AccountSummary, ListSummary};
 use crate::utils::format;
 
-/// Tabla del panel: cada cuenta con el estado actual de sus listas y los
-/// cambios desde la captura anterior.
+/// Tabla del panel: cada cuenta con sus seguidores actuales y los cambios
+/// desde la captura anterior.
 #[component]
 pub fn AccountsTable(
     accounts: Vec<AccountSummary>,
@@ -22,8 +22,7 @@ pub fn AccountsTable(
                 <thead>
                     <tr>
                         <th>"Cuenta"</th>
-                        <th>{ListKind::Followers.title()}</th>
-                        <th>{ListKind::Following.title()}</th>
+                        <th>"Seguidores"</th>
                         <th>"Última actualización"</th>
                         <th></th>
                     </tr>
@@ -33,7 +32,7 @@ pub fn AccountsTable(
                         .into_iter()
                         .map(|summary| {
                             let last_update = summary.last_update().map(str::to_owned);
-                            let AccountSummary { account, followers, following } = summary;
+                            let AccountSummary { account, followers } = summary;
                             let detail = routes::account(&account.id);
                             let paste_target = (account.id.clone(), account.username.clone());
                             let username = account.username.clone();
@@ -49,9 +48,6 @@ pub fn AccountsTable(
                                     </td>
                                     <td>
                                         <ListCell list=followers />
-                                    </td>
-                                    <td>
-                                        <ListCell list=following />
                                     </td>
                                     <td>
                                         {match last_update {
@@ -89,7 +85,7 @@ pub fn AccountsTable(
     }
 }
 
-/// Cantidad de una lista, su variación y las altas y bajas.
+/// Seguidores, su variación y las altas y bajas.
 #[component]
 fn ListCell(list: Option<ListSummary>) -> impl IntoView {
     match list {

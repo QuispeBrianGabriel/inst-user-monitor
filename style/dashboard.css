@@ -354,40 +354,6 @@
   font-size: 0.875rem;
 }
 
-/* ---------- Pestañas ---------- */
-
-.tabs {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.25rem;
-  margin-bottom: 1.25rem;
-  border-bottom: 1px solid var(--border);
-}
-
-.tabs__tab {
-  padding: 0.6rem 1rem;
-  font: inherit;
-  font-family: var(--font-mono);
-  font-size: 0.75rem;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--muted);
-  background: none;
-  border: 0;
-  border-bottom: 2px solid transparent;
-  margin-bottom: -1px;
-  cursor: pointer;
-}
-
-.tabs__tab:hover {
-  color: var(--fg);
-}
-
-.tabs__tab.is-active {
-  color: var(--accent);
-  border-bottom-color: var(--accent);
-}
-
 /* ---------- Estado vacío ---------- */
 
 .empty {
@@ -430,44 +396,6 @@
   margin: 0;
   font-size: 0.8rem;
   color: var(--subtle);
-}
-
-.segmented {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  margin: 0;
-  padding: 0;
-  border: 0;
-}
-
-.segmented legend {
-  width: 100%;
-  margin-bottom: 0.4rem;
-}
-
-.segmented__option {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  padding: 0.6rem 0.9rem;
-  font-weight: 600;
-  color: var(--muted);
-  border: 1px solid var(--border-strong);
-  border-radius: var(--radius);
-  cursor: pointer;
-}
-
-.segmented__option input {
-  accent-color: var(--accent);
-}
-
-.segmented__option.is-active {
-  color: var(--fg);
-  border-color: var(--accent);
-  background: var(--accent-soft);
 }
 
 .steps {

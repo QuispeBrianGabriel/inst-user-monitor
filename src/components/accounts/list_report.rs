@@ -4,16 +4,15 @@ use leptos::{prelude::*, task::spawn_local};
 
 use crate::components::accounts::entries::{EntriesTable, EntryList, ProfileLink};
 use crate::components::ui::{alert::Alert, delta::Delta};
-use crate::models::account::{ListKind, ListReport, Rename, Snapshot};
+use crate::models::account::{ListReport, Rename, Snapshot};
 use crate::services::{accounts_service, dialog};
 use crate::state::auth::use_auth;
 use crate::utils::format;
 
-/// Estado de una lista (seguidores o seguidos) de una cuenta: cifras, qué
-/// cambió desde la captura anterior, la lista completa y el historial.
+/// Seguidores de una cuenta: cifras, qué cambió desde la captura anterior,
+/// la lista completa y el historial.
 #[component]
 pub fn ListReportView(
-    kind: ListKind,
     report: ListReport,
     #[prop(into)] account_id: String,
     /// Tras borrar una captura, para recargar.
@@ -61,19 +60,19 @@ pub fn ListReportView(
         <div class="report">
             <div class="stats">
                 <article class="stat">
-                    <span class="stat__label">{kind.title()}</span>
+                    <span class="stat__label">"Seguidores"</span>
                     <span class="stat__value">
                         {format::count(latest.total)} <Delta value=delta />
                     </span>
                 </article>
                 <article class="stat">
-                    <span class="stat__label">{kind.added_title()}</span>
+                    <span class="stat__label">"Nuevos seguidores"</span>
                     <span class="stat__value" data-tone="up">
                         {added_count}
                     </span>
                 </article>
                 <article class="stat">
-                    <span class="stat__label">{kind.removed_title()}</span>
+                    <span class="stat__label">"Dejaron de seguirle"</span>
                     <span class="stat__value" data-tone="down">
                         {removed_count}
                     </span>
@@ -97,9 +96,9 @@ pub fn ListReportView(
                 .map(|changes| {
                     view! {
                         <div class="changes">
-                            <EntryList title=kind.added_title() entries=changes.added tone="up" />
+                            <EntryList title="Nuevos seguidores" entries=changes.added tone="up" />
                             <EntryList
-                                title=kind.removed_title()
+                                title="Dejaron de seguirle"
                                 entries=changes.removed
                                 tone="down"
                             />

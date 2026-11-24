@@ -6,7 +6,7 @@ use crate::components::accounts::{
 };
 use crate::components::ui::modal::Modal;
 use crate::config::routes;
-use crate::models::account::{AccountSummary, ListKind};
+use crate::models::account::AccountSummary;
 use crate::services::accounts_service;
 use crate::state::auth::use_auth;
 use crate::utils::format;
@@ -54,7 +54,7 @@ pub fn Dashboard() -> impl IntoView {
                 <div>
                     <h1>"Cuentas monitoreadas"</h1>
                     <p class="muted">
-                        "Registra cuentas de Instagram y pega sus listas de seguidores o seguidos para ver qué cambió."
+                        "Registra cuentas de Instagram y pega su lista de seguidores para ver qué cambió."
                     </p>
                 </div>
                 <button type="button" class="btn btn--accent" on:click=move |_| adding.set(true)>
@@ -75,7 +75,7 @@ pub fn Dashboard() -> impl IntoView {
                                     <div class="empty card">
                                         <h2>"Aún no monitoreas ninguna cuenta"</h2>
                                         <p class="muted">
-                                            "Agrega la primera con su usuario de Instagram. Después podrás pegar sus seguidores y seguidos."
+                                            "Agrega la primera con su usuario de Instagram. Después podrás pegar su lista de seguidores."
                                         </p>
                                         <button
                                             type="button"
@@ -124,7 +124,7 @@ fn Overview(accounts: Vec<AccountSummary>) -> impl IntoView {
     let followers = || {
         accounts
             .iter()
-            .filter_map(|summary| summary.list(ListKind::Followers))
+            .filter_map(|summary| summary.followers.as_ref())
     };
     let added: usize = followers().filter_map(|list| list.added).sum();
     let removed: usize = followers().filter_map(|list| list.removed).sum();

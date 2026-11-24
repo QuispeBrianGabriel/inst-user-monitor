@@ -5,4 +5,3 @@ pub mod accounts_table;
 pub mod entries;
 pub mod list_report;
 pub mod paste_form;
-pub mod relations;

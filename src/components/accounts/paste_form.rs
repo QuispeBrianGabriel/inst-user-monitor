@@ -1,23 +1,21 @@
 use leptos::{ev::SubmitEvent, prelude::*, task::spawn_local};
 
 use crate::components::ui::{alert::Alert, button::SubmitButton};
-use crate::models::account::{ListKind, Snapshot, SnapshotRequest};
+use crate::models::account::{Snapshot, SnapshotRequest};
 use crate::services::accounts_service;
 use crate::state::auth::use_auth;
 use crate::utils::format;
 
-/// Ingreso manual de datos: el usuario elige la lista (seguidores o
-/// seguidos) y pega el texto copiado de Instagram. Si el formato no es
-/// válido, la API no guarda nada y aquí se muestra la línea que falla.
+/// Ingreso manual de datos: el usuario pega la lista de seguidores copiada
+/// de Instagram. Si el formato no es válido, la API no guarda nada y aquí se
+/// muestra la línea que falla.
 #[component]
 pub fn PasteForm(
     #[prop(into)] account_id: String,
     #[prop(into)] username: String,
-    #[prop(default = ListKind::Followers)] kind: ListKind,
     #[prop(into)] on_saved: Callback<Snapshot>,
 ) -> impl IntoView {
     let auth = use_auth();
-    let kind = RwSignal::new(kind);
     let text = RwSignal::new(String::new());
     let pending = RwSignal::new(false);
     let error = RwSignal::new(None::<String>);
@@ -36,7 +34,6 @@ pub fn PasteForm(
             return;
         }
         let request = SnapshotRequest {
-            kind: kind.get_untracked(),
             text: text.get_untracked(),
         };
         let token = auth.token();
@@ -61,34 +58,10 @@ pub fn PasteForm(
 
     view! {
         <form class="form" on:submit=on_submit novalidate>
-            <fieldset class="segmented">
-                <legend class="field__label">"¿Qué lista vas a pegar?"</legend>
-                {ListKind::ALL
-                    .into_iter()
-                    .map(|option| {
-                        view! {
-                            <label
-                                class="segmented__option"
-                                class:is-active=move || kind.get() == option
-                            >
-                                <input
-                                    type="radio"
-                                    name="paste-kind"
-                                    prop:checked=move || kind.get() == option
-                                    on:change=move |_| kind.set(option)
-                                />
-                                {option.title()}
-                            </label>
-                        }
-                    })
-                    .collect_view()}
-            </fieldset>
-
             <ol class="steps">
                 <li>
-                    "En Instagram abre la lista de "
-                    <strong>{move || kind.get().title().to_lowercase()}</strong> " de @" {username}
-                    " y desplázate hasta el final para que cargue entera."
+                    "En Instagram abre la lista de " <strong>"seguidores"</strong> " de @"
+                    {username} " y desplázate hasta el final para que cargue entera."
                 </li>
                 <li>"Selecciona todo (Ctrl+A), cópialo (Ctrl+C) y pégalo aquí (Ctrl+V)."</li>
             </ol>
