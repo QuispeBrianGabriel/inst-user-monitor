@@ -48,6 +48,11 @@ pub mod routes {
     pub const AUTH: &str = "/";
     pub const REGISTER: &str = "/?mode=register";
     pub const DASHBOARD: &str = "/dashboard";
+
+    /// Detalle de una cuenta monitoreada (`/dashboard/accounts/:id`).
+    pub fn account(id: &str) -> String {
+        format!("{DASHBOARD}/accounts/{id}")
+    }
 }
 
 /// Claves de `localStorage`, con prefijo para no colisionar con otras apps.
