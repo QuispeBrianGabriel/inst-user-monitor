@@ -99,7 +99,7 @@ Para añadir una página: crea `src/pages/<nombre>.rs`, regístrala en `src/page
 | --- | --- |
 | `/` | Login (`/?mode=register` → registro). Con sesión, redirige a `/dashboard` |
 | `/dashboard` | Privada (`ProtectedLayout`): sin sesión, redirige a `/`. Cuentas monitoreadas, sus cifras y cambios |
-| `/dashboard/accounts/:id` | Privada: detalle de una cuenta (listas, cambios, historial y relaciones) |
+| `/dashboard/accounts/:id` | Privada: detalle de una cuenta (seguidores, cambios e historial) |
 
 > `services/auth_service.rs` habla con la API: `login` pide el token y luego `/auth/me`; `register` crea la cuenta e inicia sesión enseguida, así que el usuario entra directo a `/dashboard`.
 >
@@ -107,7 +107,7 @@ Para añadir una página: crea `src/pages/<nombre>.rs`, regístrala en `src/page
 
 ### Cuentas monitoreadas
 
-El usuario registra cuentas de Instagram a mano (no se comprueba que existan) y, con **Ingresar datos**, pega la lista de seguidores o de seguidos copiada de Instagram (Ctrl+A, Ctrl+C). El texto es una cuenta por bloque: una línea con el usuario y, debajo, su nombre visible, que puede faltar:
+El usuario registra cuentas de Instagram a mano (no se comprueba que existan) y, con **Ingresar datos**, pega la lista de seguidores copiada de Instagram (Ctrl+A, Ctrl+C). El texto es una cuenta por bloque: una línea con el usuario y, debajo, su nombre visible, que puede faltar:
 
 ```
 izqmatty
@@ -119,7 +119,7 @@ jer.silva.green
 Jeremy Silva
 ```
 
-La API lee el texto entero; si algo no encaja, no guarda nada y responde con la primera línea que falla, que el formulario muestra. Cada captura se compara con la anterior de la misma lista: altas, bajas, cambios de nombre y variación del total.
+La API lee el texto entero; si algo no encaja, no guarda nada y responde con la primera línea que falla, que el formulario muestra. Cada captura se compara con la anterior: altas, bajas, cambios de nombre y variación del total.
 
 ### Icono
 
