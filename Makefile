@@ -4,8 +4,9 @@
 #  Ejecuta `make` o `make help` para ver todas las tareas.
 #  La lógica vive en scripts/: aquí solo se llaman comandos.
 #
-#  Todas las tareas se ejecutan dentro del Dev Container, salvo `setup`,
-#  que se ejecuta en el host antes de abrirlo por primera vez.
+#  Todas las tareas se ejecutan dentro del Dev Container, salvo `setup`
+#  (en el host, antes de abrirlo por primera vez) y `stack*` (en el host,
+#  porque necesitan Docker).
 #
 #  Al añadir una tarea, añade también su línea en `help`.
 # =============================================================================
@@ -27,7 +28,11 @@ T    ?=
 NAME ?=
 V    ?=
 
+# Repo del back (hermano de este): ahí vive el stack completo (docker/stack.yml)
+BACK_DIR ?= $(patsubst %/scripts/stack.sh,%,$(firstword $(wildcard ../back/scripts/stack.sh ../inst-user-monitor-back/scripts/stack.sh)))
+
 .PHONY: setup help tree \
+        stack stack-down stack-logs stack-reset \
         install run \
         check test format format-check \
         build clean \
@@ -51,6 +56,10 @@ help:
 
 	@printf "$(TITLE)" "🖥️  Host — se ejecuta FUERA del Dev Container"
 	@printf $(ITEM) "setup"         "🧰 Prepara el repo recién clonado (una sola vez)"
+	@printf $(ARGS) "stack"         "🧩 Front + API + Postgres en local, como en Railway" "[BACK_DIR=]"
+	@printf $(ITEM) "stack-logs"    "📜 Sigue los logs del stack"
+	@printf $(ITEM) "stack-down"    "⏹️  Detiene el stack (conserva la base)"
+	@printf $(ITEM) "stack-reset"   "💣 Detiene el stack y borra su base (pide confirmar)"
 
 	@printf "$(TITLE)" "📚 General"
 	@printf $(ITEM) "help"          "📖 Muestra esta ayuda"
@@ -83,9 +92,17 @@ help:
 .DEFAULT:
 	@printf "\033[1;31m✘\033[0m La tarea '%s' no existe. Usa \033[1;36mmake help\033[0m para ver todas.\n" "$@"
 
-# Único comando que se ejecuta en el host
+# Se ejecutan en el host: necesitan Docker
 setup:
 	@scripts/setup.sh
+
+# El stack lo define el back; se le pasa este repo como front
+stack stack-down stack-logs stack-reset:
+	@if [ ! -x "$(BACK_DIR)/scripts/stack.sh" ]; then \
+		printf "\033[1;31m✘\033[0m No encuentro el repo del back$(if $(BACK_DIR), en $(BACK_DIR)). Indícalo: make $@ BACK_DIR=/ruta/al/back\n"; \
+	else \
+		$(MAKE) -C "$(BACK_DIR)" $@ FRONT_DIR="$(CURDIR)"; \
+	fi
 
 tree:
 	@$(GRACEFUL) "🛑 Cancelado" tree -a --dirsfirst -I '.git|target|dist|scripts|docker|.devcontainer|.github'

@@ -19,6 +19,21 @@ Todo corre dentro de Docker; en el host solo hace falta Docker y VS Code con la 
 | `make page NAME=user_detail` | crea `src/pages/user_detail.rs` y lo registra |
 | `make build` | build optimizado en `dist/` |
 
+## Probar front y API juntos
+
+Dos formas, ambas con el repo del back clonado al lado (`../back` o `../inst-user-monitor-back`; si no, `BACK_DIR=/ruta`):
+
+- **Como en producción** (en el host): `make stack` construye las imágenes de producción de los dos repos desde el código local y levanta Postgres 18 + API + front con las mismas variables que en Railway. Espera a la API, aplica las migraciones y pasa el smoke test del back (readiness, migraciones y CORS desde el origen del front).
+
+  | Servicio | URL |
+  | --- | --- |
+  | Front | http://localhost:3001 |
+  | API | http://localhost:8088 |
+
+  `make stack-logs` sigue los logs, `make stack-down` lo detiene (conserva la base) y `make stack-reset` borra la base para empezar como en un despliegue nuevo. Los puertos (`STACK_WEB_PORT`, `STACK_API_PORT`) no chocan con los del Dev Container, así que ambos pueden convivir. La definición vive en el back: `docker/stack.yml`.
+
+- **En desarrollo, con recarga**: `make run` en el Dev Container del back (API en :8080) y `make run` en este (front en :3000). `public/config.js` ya apunta a `http://localhost:8080` y el `CORS_ORIGIN` por defecto del back es `http://localhost:3000`.
+
 ## Producción
 
 ```sh
